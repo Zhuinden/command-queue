@@ -3,8 +3,6 @@ package com.zhuinden.commandqueue;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -24,6 +22,17 @@ public class CommandQueue<T> {
     private Receiver<T> receiver;
 
     /**
+     * Returns if the command queue has a receiver.
+     *
+     * @return whether there is a receiver
+     */
+    public boolean hasReceiver() {
+        return receiver != null;
+    }
+
+    private boolean isEmittingEvent = false;
+
+    /**
      * Sets the receiver. If there are any enqueued events, the receiver will receive them when set.
      *
      * @param receiver the event receiver
@@ -31,12 +40,11 @@ public class CommandQueue<T> {
     public void setReceiver(@Nullable final Receiver<T> receiver) {
         this.receiver = receiver;
         if(receiver != null) {
-            List<T> copy = new ArrayList<>(queuedEvents);
-            if(!copy.isEmpty()) {
-                queuedEvents.clear();
-                for(T event : copy) {
-                    sendEvent(event);
-                }
+            while(this.receiver != null && !queuedEvents.isEmpty()) {
+                T event = queuedEvents.poll();
+                isEmittingEvent = true;
+                receiver.receiveCommand(event);
+                isEmittingEvent = false;
             }
         }
     }
@@ -57,7 +65,7 @@ public class CommandQueue<T> {
         if(event == null) {
             throw new IllegalArgumentException("Null value is not allowed as an event");
         }
-        if(receiver == null) {
+        if(receiver == null || isEmittingEvent) {
             queuedEvents.add(event);
         } else {
             receiver.receiveCommand(event);

@@ -20,14 +20,25 @@ import android.support.annotation.NonNull;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class CommandQueueTest {
     public abstract static class Events {
         public static class First extends Events {}
 
         public static class Second extends Events {}
+
+        public static class Third extends Events {}
+
+        public static class Fourth extends Events {}
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass() == getClass();
+        }
     }
 
     @Test
@@ -97,5 +108,66 @@ public class CommandQueueTest {
         } catch(IllegalArgumentException e) {
             // OK!
         }
+    }
+
+    @Test
+    public void emittingEventsInReceiverPreservesOrder() {
+        final CommandQueue<Events> queue = new CommandQueue<>();
+
+        final List<Events> eventsList = new ArrayList<>();
+
+        CommandQueue.Receiver<Events> receiver = new CommandQueue.Receiver<Events>() {
+            @Override
+            public void receiveCommand(@NonNull Events command) {
+                eventsList.add(command);
+                if(command instanceof Events.First) {
+                    queue.detachReceiver();
+                    queue.sendEvent(new Events.Second());
+                    queue.sendEvent(new Events.Third());
+                    queue.sendEvent(new Events.Second());
+                    queue.sendEvent(new Events.Third());
+                    queue.sendEvent(new Events.Second());
+                } else if(command instanceof Events.Second) {
+                    queue.sendEvent(new Events.Third());
+                }
+            }
+        };
+
+        queue.sendEvent(new Events.Fourth());
+        assertThat(eventsList).isEmpty();
+
+        queue.setReceiver(receiver);
+        assertThat(eventsList).containsExactly(new Events.Fourth());
+
+        queue.sendEvent(new Events.First());
+        assertThat(eventsList).containsExactly(new Events.Fourth(), new Events.First());
+
+        queue.sendEvent(new Events.Fourth());
+        assertThat(eventsList).containsExactly(new Events.Fourth(), new Events.First());
+
+        queue.setReceiver(receiver);
+        assertThat(eventsList).containsExactly(new Events.Fourth(), new Events.First(), new Events.Second(), new Events.Third(), new Events.Second(), new Events.Third(), new Events.Second(), new Events.Fourth(), new Events.Third(), new Events.Third(), new Events.Third());
+    }
+
+    @Test
+    public void hasReceiverWorksCorrectly() {
+        final CommandQueue<Object> queue = new CommandQueue<>();
+
+        CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+
+            }
+        };
+
+        assertThat(queue.hasReceiver()).isFalse();
+
+        queue.setReceiver(receiver);
+
+        assertThat(queue.hasReceiver()).isTrue();
+
+        queue.detachReceiver();
+
+        assertThat(queue.hasReceiver()).isFalse();
     }
 }
