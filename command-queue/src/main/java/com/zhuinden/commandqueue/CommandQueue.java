@@ -40,11 +40,14 @@ public class CommandQueue<T> {
     public void setReceiver(@Nullable final Receiver<T> receiver) {
         this.receiver = receiver;
         if(receiver != null) {
-            while(this.receiver != null && !queuedEvents.isEmpty()) {
+            while(!queuedEvents.isEmpty()) {
                 T event = queuedEvents.poll();
                 isEmittingEvent = true;
                 receiver.receiveCommand(event);
                 isEmittingEvent = false;
+                if(this.receiver != receiver) {
+                    break;
+                }
             }
         }
     }
