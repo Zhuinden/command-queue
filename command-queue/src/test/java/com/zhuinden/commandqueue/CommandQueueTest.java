@@ -170,4 +170,62 @@ public class CommandQueueTest {
 
         assertThat(queue.hasReceiver()).isFalse();
     }
+
+    @Test
+    public void setPausedWorks() {
+        final List<Object> commands = new ArrayList<>();
+
+        Object command1 = new Object();
+        Object command2 = new Object();
+        Object command3 = new Object();
+
+        final CommandQueue<Object> queue = new CommandQueue<>();
+
+        CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+                commands.add(command);
+            }
+        };
+
+        queue.sendEvent(command1);
+
+        assertThat(commands).isEmpty();
+
+        queue.setReceiver(receiver);
+
+        assertThat(commands).containsExactly(command1);
+
+        queue.setPaused(true);
+
+        queue.sendEvent(command2);
+
+        assertThat(commands).containsExactly(command1);
+
+        queue.detachReceiver();
+
+        queue.setReceiver(receiver);
+
+        assertThat(commands).containsExactly(command1);
+
+        queue.setPaused(false);
+
+        assertThat(commands).containsExactly(command1, command2);
+
+        queue.setPaused(true);
+
+        queue.detachReceiver();
+
+        queue.sendEvent(command3);
+
+        assertThat(commands).containsExactly(command1, command2);
+
+        queue.setPaused(false);
+
+        assertThat(commands).containsExactly(command1, command2);
+
+        queue.setReceiver(receiver);
+
+        assertThat(commands).containsExactly(command1, command2, command3);
+    }
 }

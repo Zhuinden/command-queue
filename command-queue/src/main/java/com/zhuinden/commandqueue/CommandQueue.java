@@ -14,7 +14,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class CommandQueue<T> {
     private final ConcurrentLinkedQueue<T> queuedEvents = new ConcurrentLinkedQueue<>();
+    private boolean paused;
 
+    /**
+     * The receiver receives commands when it is set.
+     *
+     * @param <T> the events
+     */
     public interface Receiver<T> {
         void receiveCommand(@NonNull T command);
     }
@@ -32,6 +38,19 @@ public class CommandQueue<T> {
 
     private boolean isEmittingEvent = false;
 
+    private boolean canEmitEvents() {
+        return receiver != null && !isEmittingEvent && !paused;
+    }
+
+    private void emitEvents(@NonNull final Receiver<T> receiver) {
+        while(!paused && !queuedEvents.isEmpty() && this.receiver == receiver) {
+            T event = queuedEvents.poll();
+            isEmittingEvent = true;
+            receiver.receiveCommand(event);
+            isEmittingEvent = false;
+        }
+    }
+
     /**
      * Sets the receiver. If there are any enqueued events, the receiver will receive them when set.
      *
@@ -40,14 +59,22 @@ public class CommandQueue<T> {
     public void setReceiver(@Nullable final Receiver<T> receiver) {
         this.receiver = receiver;
         if(receiver != null) {
-            while(!queuedEvents.isEmpty()) {
-                T event = queuedEvents.poll();
-                isEmittingEvent = true;
-                receiver.receiveCommand(event);
-                isEmittingEvent = false;
-                if(this.receiver != receiver) {
-                    break;
-                }
+            emitEvents(receiver);
+        }
+    }
+
+    /**
+     * Sets whether the queue is paused. The paused queue emits only when it is unpaused, and a receiver is available.
+     *
+     * @param paused whether the queue is paused
+     */
+    public void setPaused(boolean paused) {
+        boolean wasPaused = this.paused;
+        this.paused = paused;
+        if(wasPaused && !paused) {
+            final Receiver<T> currentReceiver = receiver;
+            if(currentReceiver != null) {
+                emitEvents(currentReceiver);
             }
         }
     }
@@ -68,7 +95,7 @@ public class CommandQueue<T> {
         if(event == null) {
             throw new IllegalArgumentException("Null value is not allowed as an event");
         }
-        if(receiver == null || isEmittingEvent) {
+        if(!canEmitEvents()) {
             queuedEvents.add(event);
         } else {
             receiver.receiveCommand(event);
