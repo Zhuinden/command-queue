@@ -43,7 +43,7 @@ public class CommandQueue<T> {
     }
 
     private void emitEvents(@NonNull final Receiver<T> receiver) {
-        while(!paused && !queuedEvents.isEmpty() && this.receiver == receiver) {
+        while(canEmitEvents() && !queuedEvents.isEmpty() && this.receiver == receiver) {
             T event = queuedEvents.poll();
             isEmittingEvent = true;
             receiver.receiveCommand(event);
@@ -73,7 +73,7 @@ public class CommandQueue<T> {
         this.paused = paused;
         if(wasPaused && !paused) {
             final Receiver<T> currentReceiver = receiver;
-            if(currentReceiver != null && canEmitEvents()) {
+            if(currentReceiver != null) {
                 emitEvents(currentReceiver);
             }
         }
