@@ -73,7 +73,7 @@ public class CommandQueue<T> {
         this.paused = paused;
         if(wasPaused && !paused) {
             final Receiver<T> currentReceiver = receiver;
-            if(currentReceiver != null) {
+            if(currentReceiver != null && canEmitEvents()) {
                 emitEvents(currentReceiver);
             }
         }

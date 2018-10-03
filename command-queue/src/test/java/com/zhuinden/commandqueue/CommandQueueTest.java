@@ -228,4 +228,48 @@ public class CommandQueueTest {
 
         assertThat(commands).containsExactly(command1, command2, command3);
     }
+
+    @Test
+    public void setPausedFalseDoesNotEmitWhileEventsAreEmitted() {
+        final Object event1 = new Object();
+        final Object event2 = new Object();
+        final Object event3 = new Object();
+
+        final List<Object> commands = new ArrayList<>();
+
+        final CommandQueue<Object> commandQueue = new CommandQueue<>();
+
+        final CommandQueue.Receiver<Object> fakeReceiver = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+                throw new IllegalStateException("This shouldn't be called");
+            }
+        };
+
+        final CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+                commands.add(command);
+
+                if(command == event1) {
+                    commandQueue.setPaused(true);
+                }
+                if(command == event2) {
+                    commandQueue.setPaused(true);
+                    commandQueue.sendEvent(event3);
+                    commandQueue.setReceiver(fakeReceiver);
+                    commandQueue.setPaused(false);
+                    commandQueue.setReceiver(this);
+                }
+            }
+        };
+
+        commandQueue.setReceiver(receiver);
+        commandQueue.sendEvent(event1);
+        assertThat(commands).containsExactly(event1);
+        commandQueue.sendEvent(event2);
+        assertThat(commands).containsExactly(event1);
+        commandQueue.setPaused(false);
+        assertThat(commands).containsExactly(event1, event2, event3);
+    }
 }
