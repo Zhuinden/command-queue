@@ -1,5 +1,9 @@
 # Change log
 
+-Command Queue 0.1.1 (2018-10-03)
+--------------------------------
+- Fix: Calling `setReceiver(Receiver)` inside a `receiveCommand` block will no longer "freeze" the queue.
+
 -Command Queue 0.1.0 (2018-10-03)
 --------------------------------
 - Add `setPaused(boolean)` to temporarily freeze the queue even if receiver is available.

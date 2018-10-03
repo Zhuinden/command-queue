@@ -272,4 +272,44 @@ public class CommandQueueTest {
         commandQueue.setPaused(false);
         assertThat(commands).containsExactly(event1, event2, event3);
     }
+
+    @Test
+    public void setReceiverInReceiveCommandShouldntFreezeQueue() {
+        final Object event1 = new Object();
+        final Object event2 = new Object();
+        final Object event3 = new Object();
+
+        final List<Object> commands1 = new ArrayList<>();
+        final List<Object> commands2 = new ArrayList<>();
+
+        final CommandQueue<Object> commandQueue = new CommandQueue<>();
+
+        final CommandQueue.Receiver<Object> receiver2 = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+                commands2.add(command);
+                if(command == event2) {
+                    commandQueue.sendEvent(event3);
+                }
+            }
+        };
+
+        final CommandQueue.Receiver<Object> receiver1 = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@NonNull Object command) {
+                commands1.add(command);
+                if(command == event1) {
+                    commandQueue.detachReceiver();
+                    commandQueue.sendEvent(event2);
+                    commandQueue.setReceiver(receiver2);
+                }
+            }
+        };
+
+        commandQueue.sendEvent(event1);
+        commandQueue.setReceiver(receiver1);
+
+        assertThat(commands1).containsExactly(event1);
+        assertThat(commands2).containsExactly(event2, event3);
+    }
 }

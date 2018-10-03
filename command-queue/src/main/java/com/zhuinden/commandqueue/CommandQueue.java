@@ -19,7 +19,7 @@ public class CommandQueue<T> {
     /**
      * The receiver receives commands when it is set.
      *
-     * @param <T> the events
+     * @param <T> the type of the event
      */
     public interface Receiver<T> {
         void receiveCommand(@NonNull T command);
@@ -48,6 +48,10 @@ public class CommandQueue<T> {
             isEmittingEvent = true;
             receiver.receiveCommand(event);
             isEmittingEvent = false;
+        }
+
+        if(this.receiver != receiver) {
+            emitEvents(this.receiver);
         }
     }
 
