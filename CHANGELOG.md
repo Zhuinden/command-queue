@@ -1,5 +1,9 @@
 # Change log
 
+-Command Queue 0.1.2 (2018-12-10)
+--------------------------------
+- Add: `CommandQueue(boolean distinctOnly)`, which does not send the event if the new event is equal to the previous event.
+
 -Command Queue 0.1.1 (2018-10-03)
 --------------------------------
 - Fix: Calling `setReceiver(Receiver)` inside a `receiveCommand` block will no longer "freeze" the queue.

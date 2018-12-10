@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * A class that can be used to send events, and events are enqueued while there is no observer.
- *
  * Allows only a single receiver at a time. Enqueued events are emitted on registration.
  *
  * @param <T> the type of the event
@@ -15,6 +14,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CommandQueue<T> {
     private final ConcurrentLinkedQueue<T> queuedEvents = new ConcurrentLinkedQueue<>();
     private boolean paused;
+    private boolean distinctOnly;
+
+    public CommandQueue() {
+    }
+
+    public CommandQueue(boolean distinctOnly) {
+        this.distinctOnly = distinctOnly;
+    }
 
     /**
      * The receiver receives commands when it is set.
@@ -42,17 +49,28 @@ public class CommandQueue<T> {
         return receiver != null && !isEmittingEvent && !paused;
     }
 
+    private T previouslyEmittedEvent;
+
     private void emitEvents(@NonNull final Receiver<T> receiver) {
         while(canEmitEvents() && !queuedEvents.isEmpty() && this.receiver == receiver) {
             T event = queuedEvents.poll();
             isEmittingEvent = true;
-            receiver.receiveCommand(event);
+            sendCommandToReceiver(receiver, event);
             isEmittingEvent = false;
         }
 
         if(this.receiver != receiver) {
             emitEvents(this.receiver);
         }
+    }
+
+    private void sendCommandToReceiver(@NonNull Receiver<T> receiver, @NonNull T event) {
+        T previousEvent = previouslyEmittedEvent;
+        if(previousEvent != null && event.equals(previousEvent) && distinctOnly) {
+            return; // don't send duplicate commands if distinct only
+        }
+        this.previouslyEmittedEvent = event;
+        receiver.receiveCommand(event);
     }
 
     /**
@@ -102,7 +120,7 @@ public class CommandQueue<T> {
         if(!canEmitEvents()) {
             queuedEvents.add(event);
         } else {
-            receiver.receiveCommand(event);
+            sendCommandToReceiver(receiver, event);
         }
     }
 }

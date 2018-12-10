@@ -27,13 +27,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CommandQueueTest {
     public abstract static class Events {
-        public static class First extends Events {}
+        public static class First extends Events {
+        }
 
-        public static class Second extends Events {}
+        public static class Second extends Events {
+        }
 
-        public static class Third extends Events {}
+        public static class Third extends Events {
+        }
 
-        public static class Fourth extends Events {}
+        public static class Fourth extends Events {
+        }
 
         @Override
         public boolean equals(Object obj) {
@@ -311,5 +315,61 @@ public class CommandQueueTest {
 
         assertThat(commands1).containsExactly(event1);
         assertThat(commands2).containsExactly(event2, event3);
+    }
+
+    @Test
+    public void distinctOnlyWorksCorrectly() {
+        class Blah {
+            Blah() {
+            }
+
+            Blah(String name) {
+                this.name = name;
+            }
+
+            String name;
+
+            @Override
+            public boolean equals(Object obj) {
+                return obj != null && obj instanceof Blah && ((Blah) obj).name.equals(name);
+            }
+
+            @Override
+            public String toString() {
+                return name + "[" + super.toString() + "]";
+            }
+        }
+
+        Blah blah1 = new Blah("blahh");
+        Blah blah2 = new Blah("blahh");
+        Blah blah = new Blah("anotherBlah");
+
+        final List<Blah> blahs = new ArrayList<>();
+
+        CommandQueue<Blah> commandQueue = new CommandQueue<>(true);
+        commandQueue.setReceiver(new CommandQueue.Receiver<Blah>() {
+            @Override
+            public void receiveCommand(@NonNull Blah command) {
+                blahs.add(command);
+            }
+        });
+
+        commandQueue.sendEvent(blah1);
+        assertThat(blahs).containsExactly(blah1);
+
+        commandQueue.sendEvent(blah1);
+        assertThat(blahs).containsExactly(blah1);
+
+        commandQueue.sendEvent(blah2);
+        assertThat(blahs).containsExactly(blah1);
+
+        commandQueue.sendEvent(blah);
+        assertThat(blahs).containsExactly(blah1, blah);
+
+        commandQueue.sendEvent(blah);
+        assertThat(blahs).containsExactly(blah1, blah);
+
+        commandQueue.sendEvent(blah2);
+        assertThat(blahs).containsExactly(blah1, blah, blah2);
     }
 }
