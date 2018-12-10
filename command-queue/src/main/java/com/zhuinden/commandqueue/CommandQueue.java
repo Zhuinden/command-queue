@@ -15,12 +15,32 @@ public class CommandQueue<T> {
     private final ConcurrentLinkedQueue<T> queuedEvents = new ConcurrentLinkedQueue<>();
     private boolean paused;
     private boolean distinctOnly;
+    private int limit = -1;
 
     public CommandQueue() {
     }
 
-    public CommandQueue(boolean distinctOnly) {
-        this.distinctOnly = distinctOnly;
+    public static class Builder<T> {
+        private boolean distinctOnly = false;
+
+        private int limit = -1;
+
+        public Builder<T> distinctOnly() {
+            this.distinctOnly = true;
+            return this;
+        }
+
+        public Builder<T> limit(int limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        public CommandQueue<T> build() {
+            CommandQueue<T> commandQueue = new CommandQueue<>();
+            commandQueue.distinctOnly = distinctOnly;
+            commandQueue.limit = limit;
+            return commandQueue;
+        }
     }
 
     /**
@@ -118,7 +138,9 @@ public class CommandQueue<T> {
             throw new IllegalArgumentException("Null value is not allowed as an event");
         }
         if(!canEmitEvents()) {
-            queuedEvents.add(event);
+            if(limit == -1 || queuedEvents.size() < limit) { // drop new events that don't fit the queue
+                queuedEvents.add(event);
+            }
         } else {
             sendCommandToReceiver(receiver, event);
         }

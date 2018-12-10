@@ -346,7 +346,7 @@ public class CommandQueueTest {
 
         final List<Blah> blahs = new ArrayList<>();
 
-        CommandQueue<Blah> commandQueue = new CommandQueue<>(true);
+        CommandQueue<Blah> commandQueue = new CommandQueue.Builder<Blah>().distinctOnly().build();
         commandQueue.setReceiver(new CommandQueue.Receiver<Blah>() {
             @Override
             public void receiveCommand(@NonNull Blah command) {
@@ -371,5 +371,73 @@ public class CommandQueueTest {
 
         commandQueue.sendEvent(blah2);
         assertThat(blahs).containsExactly(blah1, blah, blah2);
+    }
+
+    @Test
+    public void limitWorksCorrectly() {
+        class Blah {
+            Blah() {
+            }
+
+            Blah(String name) {
+                this.name = name;
+            }
+
+            String name;
+
+            @Override
+            public boolean equals(Object obj) {
+                return obj != null && obj instanceof Blah && ((Blah) obj).name.equals(name);
+            }
+
+            @Override
+            public String toString() {
+                return name + "[" + super.toString() + "]";
+            }
+        }
+
+        CommandQueue<Blah> commandQueue = new CommandQueue.Builder<Blah>().limit(3).build();
+
+        Blah blah1 = new Blah("blah1");
+        Blah blah2 = new Blah("blah2");
+        Blah blah3 = new Blah("blah3");
+        Blah blah4 = new Blah("blah4");
+        Blah blah5 = new Blah("blah5");
+        Blah blah6 = new Blah("blah6");
+        Blah blah7 = new Blah("blah7");
+        Blah blah8 = new Blah("blah8");
+        Blah blah9 = new Blah("blah9");
+
+        final List<Blah> blahs = new ArrayList<>();
+        CommandQueue.Receiver<Blah> receiver = new CommandQueue.Receiver<Blah>() {
+            @Override
+            public void receiveCommand(@NonNull Blah command) {
+                blahs.add(command);
+            }
+        };
+
+        commandQueue.sendEvent(blah1);
+        commandQueue.sendEvent(blah2);
+        commandQueue.sendEvent(blah3);
+        commandQueue.sendEvent(blah4);
+
+        commandQueue.setReceiver(receiver);
+        assertThat(blahs).containsExactly(blah1, blah2, blah3);
+
+        commandQueue.setPaused(true);
+        commandQueue.sendEvent(blah5);
+        commandQueue.sendEvent(blah6);
+        commandQueue.sendEvent(blah7);
+        commandQueue.sendEvent(blah8);
+
+        assertThat(blahs).containsExactly(blah1, blah2, blah3);
+
+        commandQueue.setPaused(false);
+        assertThat(blahs).containsExactly(blah1, blah2, blah3, blah5, blah6, blah7);
+
+        commandQueue.detachReceiver();
+        commandQueue.sendEvent(blah9);
+        commandQueue.setReceiver(receiver);
+        assertThat(blahs).containsExactly(blah1, blah2, blah3, blah5, blah6, blah7, blah9);
     }
 }

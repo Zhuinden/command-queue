@@ -1,8 +1,14 @@
 # Change log
 
--Command Queue 0.1.2 (2018-12-10)
+-Command Queue 0.1.3 (2018-12-10)
 --------------------------------
-- Add: `CommandQueue(boolean distinctOnly)`, which does not send the event if the new event is equal to the previous event.
+- Remove: `CommandQueue(boolean distinctOnly)`.
+
+- Add `CommandQueue.Builder<T>` to configure the created command queue.
+
+- Add `CommandQueue.Builder.distinctOnly()`, which instructs the command queue not to send the event if the new event is content-equal to the previous event.
+
+- Add `CommandQueue.Builder.limit(int)`, which instructs the command queue to drop new events if the queue is already "full".
 
 -Command Queue 0.1.1 (2018-10-03)
 --------------------------------
