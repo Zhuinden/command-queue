@@ -23,6 +23,6 @@ import org.junit.runners.Suite;
  * Created by Owner on 2017. 01. 17..
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({CommandQueueTest.class})
+@Suite.SuiteClasses({CommandQueueTest.class, CommandQueueMockitoTest.class})
 public class TestSuite {
 }
