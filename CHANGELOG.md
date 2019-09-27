@@ -1,5 +1,9 @@
 # Change log
 
+-Command Queue 1.0.0 (2019-09-27)
+--------------------------------
+- No changes. Version bump to 1.0.0.
+
 -Command Queue 0.1.3 (2018-12-10)
 --------------------------------
 - Remove: `CommandQueue(boolean distinctOnly)`.
