@@ -1,9 +1,9 @@
 package com.zhuinden.commandqueue;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A class that can be used to send events, and events are enqueued while there is no observer.
@@ -49,7 +49,7 @@ public class CommandQueue<T> {
      * @param <T> the type of the event
      */
     public interface Receiver<T> {
-        void receiveCommand(@NonNull T command);
+        void receiveCommand(@Nonnull T command);
     }
 
     private Receiver<T> receiver;
@@ -71,7 +71,7 @@ public class CommandQueue<T> {
 
     private T previouslyEmittedEvent;
 
-    private void emitEvents(@NonNull final Receiver<T> receiver) {
+    private void emitEvents(@Nonnull final Receiver<T> receiver) {
         while(canEmitEvents() && !queuedEvents.isEmpty() && this.receiver == receiver) {
             T event = queuedEvents.poll();
             isEmittingEvent = true;
@@ -84,7 +84,7 @@ public class CommandQueue<T> {
         }
     }
 
-    private void sendCommandToReceiver(@NonNull Receiver<T> receiver, @NonNull T event) {
+    private void sendCommandToReceiver(@Nonnull Receiver<T> receiver, @Nonnull T event) {
         T previousEvent = previouslyEmittedEvent;
         if(previousEvent != null && event.equals(previousEvent) && distinctOnly) {
             return; // don't send duplicate commands if distinct only
@@ -133,7 +133,7 @@ public class CommandQueue<T> {
      *
      * @param event the event
      */
-    public void sendEvent(@NonNull final T event) {
+    public void sendEvent(@Nonnull final T event) {
         if(event == null) {
             throw new IllegalArgumentException("Null value is not allowed as an event");
         }

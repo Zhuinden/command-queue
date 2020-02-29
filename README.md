@@ -22,9 +22,9 @@ In order to use Command Queue, you need to add jitpack to your project root grad
     }
 
 
-and add the compile dependency to your module level gradle.
+and add the dependency to your module level gradle.
 
-    compile 'com.github.Zhuinden:command-queue:1.0.0'
+    implementation 'com.github.Zhuinden:command-queue:1.1.0'
 
 ## License
 

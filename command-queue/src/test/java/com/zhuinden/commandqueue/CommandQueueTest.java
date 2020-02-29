@@ -15,13 +15,13 @@
  */
 package com.zhuinden.commandqueue;
 
-import android.support.annotation.NonNull;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +62,7 @@ public class CommandQueueTest {
 
         CommandQueue.Receiver<Events> receiver = new CommandQueue.Receiver<Events>() {
             @Override
-            public void receiveCommand(@NonNull Events command) {
+            public void receiveCommand(@Nonnull Events command) {
                 if(command instanceof Events.First) {
                     firsts.item += 1;
                 } else if(command instanceof Events.Second) {
@@ -122,7 +122,7 @@ public class CommandQueueTest {
 
         CommandQueue.Receiver<Events> receiver = new CommandQueue.Receiver<Events>() {
             @Override
-            public void receiveCommand(@NonNull Events command) {
+            public void receiveCommand(@Nonnull Events command) {
                 eventsList.add(command);
                 if(command instanceof Events.First) {
                     queue.detachReceiver();
@@ -159,7 +159,7 @@ public class CommandQueueTest {
 
         CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
 
             }
         };
@@ -187,7 +187,7 @@ public class CommandQueueTest {
 
         CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
                 commands.add(command);
             }
         };
@@ -245,14 +245,14 @@ public class CommandQueueTest {
 
         final CommandQueue.Receiver<Object> fakeReceiver = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
                 throw new IllegalStateException("This shouldn't be called");
             }
         };
 
         final CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
                 commands.add(command);
 
                 if(command == event1) {
@@ -290,7 +290,7 @@ public class CommandQueueTest {
 
         final CommandQueue.Receiver<Object> receiver2 = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
                 commands2.add(command);
                 if(command == event2) {
                     commandQueue.sendEvent(event3);
@@ -300,7 +300,7 @@ public class CommandQueueTest {
 
         final CommandQueue.Receiver<Object> receiver1 = new CommandQueue.Receiver<Object>() {
             @Override
-            public void receiveCommand(@NonNull Object command) {
+            public void receiveCommand(@Nonnull Object command) {
                 commands1.add(command);
                 if(command == event1) {
                     commandQueue.detachReceiver();
@@ -349,7 +349,7 @@ public class CommandQueueTest {
         CommandQueue<Blah> commandQueue = new CommandQueue.Builder<Blah>().distinctOnly().build();
         commandQueue.setReceiver(new CommandQueue.Receiver<Blah>() {
             @Override
-            public void receiveCommand(@NonNull Blah command) {
+            public void receiveCommand(@Nonnull Blah command) {
                 blahs.add(command);
             }
         });
@@ -411,7 +411,7 @@ public class CommandQueueTest {
         final List<Blah> blahs = new ArrayList<>();
         CommandQueue.Receiver<Blah> receiver = new CommandQueue.Receiver<Blah>() {
             @Override
-            public void receiveCommand(@NonNull Blah command) {
+            public void receiveCommand(@Nonnull Blah command) {
                 blahs.add(command);
             }
         };
