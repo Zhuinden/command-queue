@@ -1,10 +1,11 @@
 package com.zhuinden.commandqueuesample
 
-import android.arch.lifecycle.Observer
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import android.view.Window
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import com.zhuinden.commandqueuesample.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private val viewModel by lazy { createViewModel { MainViewModel() } }
@@ -14,12 +15,14 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        button.onClick {
+        val binding = ActivityMainBinding.bind(findViewById(Window.ID_ANDROID_CONTENT))
+
+        binding.button.onClick {
             viewModel.doSomethingInteresting()
         }
 
         viewModel.loading.observe(this, Observer { loading: Boolean? ->
-            loadingOverlay.showIf { loading!! }
+            binding.loadingOverlay.showIf { loading!! }
         })
     }
 

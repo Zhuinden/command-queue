@@ -1,11 +1,9 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 29
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -14,10 +12,10 @@ android {
     defaultConfig {
         applicationId "com.zhuinden.commandqueuesample"
         minSdkVersion 15
-        targetSdkVersion 27
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
@@ -26,10 +24,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
 
-androidExtensions {
-    experimental = true
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
@@ -38,17 +36,14 @@ dependencies {
 
     implementation 'com.pnikosis:materialish-progress:1.7'
 
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.1', {
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support:support-vector-drawable:27.1.1'
-    implementation "android.arch.lifecycle:runtime:1.1.1" // not necessary if you are using Support Library 26.1+
-    implementation "android.arch.lifecycle:extensions:1.1.1"
-    annotationProcessor "android.arch.lifecycle:compiler:1.1.1" // not needed if you are using the DefaultLifecycleObserver from common-java8 artifact.
-    testImplementation 'junit:junit:4.12'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.2.0'
+    testImplementation 'junit:junit:4.13.1'
 }
 
 configurations.all {

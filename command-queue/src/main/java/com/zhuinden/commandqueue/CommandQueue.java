@@ -12,6 +12,8 @@ import javax.annotation.Nullable;
  * @param <T> the type of the event
  */
 public class CommandQueue<T> {
+    private final long threadId = Thread.currentThread().getId();
+
     private final ConcurrentLinkedQueue<T> queuedEvents = new ConcurrentLinkedQueue<>();
     private boolean paused;
     private boolean distinctOnly;
@@ -60,6 +62,7 @@ public class CommandQueue<T> {
      * @return whether there is a receiver
      */
     public boolean hasReceiver() {
+        verifyCurrentThread();
         return receiver != null;
     }
 
@@ -99,7 +102,10 @@ public class CommandQueue<T> {
      * @param receiver the event receiver
      */
     public void setReceiver(@Nullable final Receiver<T> receiver) {
+        verifyCurrentThread();
+
         this.receiver = receiver;
+
         if(receiver != null) {
             emitEvents(receiver);
         }
@@ -111,8 +117,12 @@ public class CommandQueue<T> {
      * @param paused whether the queue is paused
      */
     public void setPaused(boolean paused) {
-        boolean wasPaused = this.paused;
+        verifyCurrentThread();
+
+        final boolean wasPaused = this.paused;
+
         this.paused = paused;
+
         if(wasPaused && !paused) {
             final Receiver<T> currentReceiver = receiver;
             if(currentReceiver != null) {
@@ -125,6 +135,8 @@ public class CommandQueue<T> {
      * Removes the currently set receiver.
      */
     public void detachReceiver() {
+        verifyCurrentThread();
+
         this.receiver = null;
     }
 
@@ -134,6 +146,9 @@ public class CommandQueue<T> {
      * @param event the event
      */
     public void sendEvent(@Nonnull final T event) {
+        verifyCurrentThread();
+
+        //noinspection ConstantConditions
         if(event == null) {
             throw new IllegalArgumentException("Null value is not allowed as an event");
         }
@@ -143,6 +158,13 @@ public class CommandQueue<T> {
             }
         } else {
             sendCommandToReceiver(receiver, event);
+        }
+    }
+
+    private void verifyCurrentThread() {
+        if(threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(
+                    "A command queue can only be accessed on the thread where it was created.");
         }
     }
 }

@@ -1,5 +1,10 @@
 # Change log
 
+-Command Queue 1.2.0 (XXXX-XX-XX)
+--------------------------------
+
+- CHANGE: Added proper thread-confinement checks to ensure proper thread-safe access to CommandQueue.
+
 -Command Queue 1.1.0 (2020-02-29)
 --------------------------------
 

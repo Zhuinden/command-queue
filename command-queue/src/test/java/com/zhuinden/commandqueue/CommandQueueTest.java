@@ -20,6 +20,9 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nonnull;
 
@@ -439,5 +442,64 @@ public class CommandQueueTest {
         commandQueue.sendEvent(blah9);
         commandQueue.setReceiver(receiver);
         assertThat(blahs).containsExactly(blah1, blah2, blah3, blah5, blah6, blah7, blah9);
+    }
+
+    @Test
+    public void commandQueueCanOnlyBeAccessedOnSameThread()
+            throws InterruptedException {
+        final CommandQueue<Object> commandQueue = new CommandQueue<>();
+
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        final Object event = new Object();
+
+        final CommandQueue.Receiver<Object> receiver = new CommandQueue.Receiver<Object>() {
+            @Override
+            public void receiveCommand(@Nonnull Object command) {
+            }
+        };
+
+        final AtomicReference<Throwable> sendEventExceptionRef = new AtomicReference<>();
+        final AtomicReference<Throwable> setReceiverExceptionRef = new AtomicReference<>();
+        final AtomicReference<Throwable> setPausedExceptionRef = new AtomicReference<>();
+        final AtomicReference<Throwable> detachReceiverExceptionRef = new AtomicReference<>();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    commandQueue.sendEvent(event);
+                } catch(Throwable e) {
+                    sendEventExceptionRef.set(e);
+                }
+
+                try {
+                    commandQueue.setReceiver(receiver);
+                } catch(Throwable e) {
+                    setReceiverExceptionRef.set(e);
+                }
+
+                try {
+                    commandQueue.setPaused(true);
+                } catch(Throwable e) {
+                    setPausedExceptionRef.set(e);
+                }
+
+                try {
+                    commandQueue.detachReceiver();
+                } catch(Throwable e) {
+                    detachReceiverExceptionRef.set(e);
+                }
+
+                countDownLatch.countDown();
+            }
+        }).start();
+
+        countDownLatch.await(2000L, TimeUnit.MILLISECONDS);
+
+        assertThat(sendEventExceptionRef.get()).hasMessageContaining("can only be accessed on the thread where it was created");
+        assertThat(setReceiverExceptionRef.get()).hasMessageContaining("can only be accessed on the thread where it was created");
+        assertThat(setPausedExceptionRef.get()).hasMessageContaining("can only be accessed on the thread where it was created");
+        assertThat(detachReceiverExceptionRef.get()).hasMessageContaining("can only be accessed on the thread where it was created");
     }
 }
