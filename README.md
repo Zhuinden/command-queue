@@ -26,6 +26,12 @@ and add the dependency to your module level gradle.
 
     implementation 'com.github.Zhuinden:command-queue:1.1.0'
 
+## Sample code
+
+See sample [here](https://github.com/Zhuinden/command-queue/tree/302edf809545e912c38db0865164f418d24f38d0/command-queue-sample).
+
+Please note that CommandQueue is used as internal implementation detail for both `EventEmitter` and `LiveEvent`, if those suit your needs better.
+
 ## License
 
     Copyright 2018 Gabor Varadi
