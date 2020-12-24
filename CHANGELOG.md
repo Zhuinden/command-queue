@@ -1,9 +1,11 @@
 # Change log
 
--Command Queue 1.2.0 (XXXX-XX-XX)
+-Command Queue 1.2.0 (2020-12-24)
 --------------------------------
 
 - CHANGE: Added proper thread-confinement checks to ensure proper thread-safe access to CommandQueue.
+
+- UPDATE: make pure-JVM library.
 
 -Command Queue 1.1.0 (2020-02-29)
 --------------------------------
